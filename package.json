@@ -1,8 +1,8 @@
 {
-  "name": "ai-auto-editor",
+  "name": "flowcut",
   "version": "1.0.0",
   "private": true,
-  "description": "免费开源的浏览器端AI自动视频剪辑工具 — 场景检测、光流追踪、自动字幕、一键导出",
+  "description": "FlowCut — 免费开源的浏览器端AI自动视频剪辑工具",
   "type": "module",
   "scripts": {
     "dev": "vite --host 0.0.0.0",
