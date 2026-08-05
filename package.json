@@ -1,0 +1,23 @@
+{
+  "name": "ai-auto-editor",
+  "version": "1.0.0",
+  "private": true,
+  "description": "免费开源的浏览器端AI自动视频剪辑工具 — 场景检测、光流追踪、自动字幕、一键导出",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 0.0.0.0",
+    "build": "vite build",
+    "preview": "vite preview --host 0.0.0.0"
+  },
+  "dependencies": {
+    "@huggingface/transformers": "^3.8.1",
+    "@ffmpeg/ffmpeg": "^0.12.15",
+    "@ffmpeg/util": "^0.12.2",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^5.0.4",
+    "vite": "^6.4.2"
+  }
+}
