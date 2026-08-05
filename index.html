@@ -5,10 +5,18 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>FlowCut — 免费AI自动视频剪辑</title>
   <meta name="description" content="浏览器端AI视频剪辑：场景检测、光流追踪、自动字幕、一键导出。零费用、零后端。" />
-  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎬</text></svg>" />
+  <meta name="theme-color" content="#7c5cfc" />
+  <link rel="icon" type="image/png" sizes="32x32" href="./favicon.ico" />
+  <link rel="apple-touch-icon" href="./icon-192.png" />
+  <link rel="manifest" href="./manifest.json" />
 </head>
 <body>
   <div id="root"></div>
   <script type="module" src="/src/main.jsx"></script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('./sw.js').catch(() => {});
+    }
+  </script>
 </body>
 </html>
