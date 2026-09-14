@@ -1,5 +1,7 @@
 # 🎬 FlowCut — 免费AI自动视频剪辑
 
+[![CI](https://github.com/DorianChn/ai-auto-editor/actions/workflows/ci.yml/badge.svg)](https://github.com/DorianChn/ai-auto-editor/actions/workflows/ci.yml)
+
 > 浏览器端AI视频剪辑：场景检测、光流追踪、自动字幕、一键导出。零费用、零后端、完全本地处理。
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
