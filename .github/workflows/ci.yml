@@ -19,4 +19,9 @@ jobs:
           node-version: 20
           cache: npm
       - run: npm ci
+      - run: npm test
       - run: npm run build
+      - name: Verify production entrypoint
+        run: node -e "const fs=require('node:fs'); if (!fs.existsSync('dist/index.html')) throw new Error('dist/index.html is missing after build');"
+      - name: Audit all dependencies
+        run: npm audit --audit-level=high
