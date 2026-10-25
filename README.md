@@ -28,6 +28,17 @@ npm install
 npm run dev
 ```
 
+## 🖥️ 桌面版
+
+`desktop/main.py` 用 pywebview 把网页版包进桌面窗口。程序在后台线程里于 `127.0.0.1:18923` 提供 `dist/` 目录，窗口打开 `http://127.0.0.1:18923/index.html`，标题为 FlowCut，尺寸 1200×800，最小 800×600，可调整大小，`debug=False`。打包后的程序（`sys.frozen`）从 `sys._MEIPASS/dist` 读取页面，否则从 `desktop/main.py` 上一级的 `dist/` 读取。
+
+`FlowCut.spec` 是 PyInstaller 配置：分析入口为 `desktop\main.py`，把 `dist` 作为数据打进包内的 `dist`，生成名为 `FlowCut` 的程序（`console=False`，`upx=True`），图标为 `public\icon-192.png`。网页资源由 Vite 构建，`vite.config.js` 里 `build.outDir` 为 `dist`。
+
+```bash
+npm run build
+pyinstaller FlowCut.spec
+```
+
 ## 🛠️ 技术栈
 
 - **React 19** + **Vite** — 前端框架
@@ -56,21 +67,25 @@ npm run dev
 ## 📁 结构
 
 ```
-src/
-├── lib/
-│   ├── sceneDetector.js   # 场景检测引擎
-│   ├── opticalFlow.js     # 光流追踪引擎
-│   ├── asr.js             # Whisper语音识别
-│   ├── timeline.js        # 时间线管理
-│   └── exporter.js        # FFmpeg导出
-├── components/
-│   ├── Timeline.jsx       # 时间线组件
-│   ├── ScenePanel.jsx     # 场景面板
-│   ├── CaptionPanel.jsx   # 字幕面板
-│   └── ExportPanel.jsx    # 导出面板
-├── App.jsx                # 主应用 + 着陆页
-├── main.jsx               # 入口
-└── styles.css             # 全局样式
+.
+├── FlowCut.spec             # PyInstaller 打包配置
+├── desktop/
+│   └── main.py              # 桌面版入口（pywebview）
+└── src/
+    ├── lib/
+    │   ├── sceneDetector.js   # 场景检测引擎
+    │   ├── opticalFlow.js     # 光流追踪引擎
+    │   ├── asr.js             # Whisper语音识别
+    │   ├── timeline.js        # 时间线管理
+    │   └── exporter.js        # FFmpeg导出
+    ├── components/
+    │   ├── Timeline.jsx       # 时间线组件
+    │   ├── ScenePanel.jsx     # 场景面板
+    │   ├── CaptionPanel.jsx   # 字幕面板
+    │   └── ExportPanel.jsx    # 导出面板
+    ├── App.jsx                # 主应用 + 着陆页
+    ├── main.jsx               # 入口
+    └── styles.css             # 全局样式
 ```
 
 ## 🙏 致谢
