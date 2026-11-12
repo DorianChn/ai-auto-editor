@@ -68,26 +68,37 @@ export async function extractAudioFromBlob(blob) {
 
 /** 将视频文件转为音频 blob */
 export async function videoToAudioBlob(videoFile) {
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve) => {
     // 直接用文件本身，后续通过 AudioContext 解码
     // 对于大多数浏览器，Video 元素也能解码音频
     const video = document.createElement('video');
-    video.src = URL.createObjectURL(videoFile);
+    const objectUrl = URL.createObjectURL(videoFile);
+    let settled = false;
+    let timeoutId = null;
+
+    const cleanup = () => {
+      video.removeEventListener('loadeddata', settle);
+      video.removeEventListener('error', settle);
+      if (timeoutId !== null) {
+        clearTimeout(timeoutId);
+        timeoutId = null;
+      }
+      URL.revokeObjectURL(objectUrl);
+    };
+
+    const settle = () => {
+      if (settled) return;
+      settled = true;
+      cleanup();
+      resolve(videoFile);
+    };
+
     video.muted = false;
     video.preload = 'auto';
-
-    video.addEventListener('loadeddata', () => {
-      // 使用 MediaRecorder 捕获音频
-      // 简化方案：直接返回文件blob让 extractAudioFromBlob 处理
-      resolve(videoFile);
-    });
-
-    video.addEventListener('error', () => {
-      // 回退：直接使用原文件
-      resolve(videoFile);
-    });
-
-    setTimeout(() => resolve(videoFile), 3000);
+    video.addEventListener('loadeddata', settle);
+    video.addEventListener('error', settle);
+    timeoutId = setTimeout(settle, 3000);
+    video.src = objectUrl;
   });
 }
 
@@ -172,6 +183,56 @@ export function transcribeWithBrowserAPI(audioBlob, { language = 'zh-CN', onProg
 
     const segments = [];
     let index = 0;
+    let settled = false;
+    let stopTimer = null;
+    const audioUrl = URL.createObjectURL(audioBlob);
+    const audio = new Audio(audioUrl);
+
+    const handleAudioEnded = () => {
+      scheduleRecognitionStop(1000);
+    };
+
+    const cleanup = () => {
+      if (stopTimer !== null) {
+        clearTimeout(stopTimer);
+        stopTimer = null;
+      }
+      audio.removeEventListener('ended', handleAudioEnded);
+      audio.pause?.();
+      URL.revokeObjectURL(audioUrl);
+      recognition.onresult = null;
+      recognition.onend = null;
+      recognition.onerror = null;
+    };
+
+    const finish = () => {
+      if (settled) return;
+      settled = true;
+      cleanup();
+      onProgress?.({ phase: '识别完成', progress: 100 });
+      resolve({ segments, language });
+    };
+
+    const fail = (error) => {
+      if (settled) return;
+      settled = true;
+      cleanup();
+      reject(error);
+    };
+
+    const scheduleRecognitionStop = (delay) => {
+      if (settled) return;
+      if (stopTimer !== null) clearTimeout(stopTimer);
+      stopTimer = setTimeout(() => {
+        stopTimer = null;
+        if (settled) return;
+        try {
+          recognition.stop();
+        } catch (error) {
+          fail(error);
+        }
+      }, delay);
+    };
 
     recognition.onresult = (event) => {
       for (let i = event.resultIndex; i < event.results.length; i++) {
@@ -188,26 +249,23 @@ export function transcribeWithBrowserAPI(audioBlob, { language = 'zh-CN', onProg
       onProgress?.({ phase: `已识别 ${segments.length} 条字幕`, progress: 50 + Math.min(40, segments.length * 2) });
     };
 
-    recognition.onend = () => {
-      onProgress?.({ phase: '识别完成', progress: 100 });
-      resolve({ segments, language });
-    };
+    recognition.onend = finish;
 
     recognition.onerror = (e) => {
-      reject(new Error(`语音识别错误: ${e.error}`));
+      fail(new Error(`语音识别错误: ${e.error}`));
     };
 
     // 创建音频URL播放给识别引擎
-    const audioUrl = URL.createObjectURL(audioBlob);
-    const audio = new Audio(audioUrl);
-    audio.addEventListener('ended', () => {
-      setTimeout(() => recognition.stop(), 1000);
-    });
+    audio.addEventListener('ended', handleAudioEnded);
 
-    recognition.start();
-    audio.play().catch(() => {
-      // 如果自动播放被阻止，仍尝试识别
-      setTimeout(() => recognition.stop(), 5000);
-    });
+    try {
+      recognition.start();
+      audio.play().catch(() => {
+        // 如果自动播放被阻止，仍尝试识别
+        scheduleRecognitionStop(5000);
+      });
+    } catch (error) {
+      fail(error);
+    }
   });
 }
