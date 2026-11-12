@@ -61,11 +61,13 @@ export function removeSegment(segments, segmentId) {
 
 /** 裁剪片段 */
 export function trimSegment(segment, newStart, newEnd) {
+  const start = Math.max(segment.start, Math.min(newStart, segment.end));
+  const end = Math.max(start, Math.min(segment.end, newEnd));
   return {
     ...segment,
-    start: Math.max(0, newStart),
-    end: Math.min(segment.end, newEnd),
-    duration: newEnd - newStart,
+    start,
+    end,
+    duration: end - start,
   };
 }
 

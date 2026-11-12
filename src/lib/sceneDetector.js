@@ -142,16 +142,18 @@ export function mergeShortScenes(scenes, minDuration = 0.5) {
   const merged = [scenes[0]];
   for (let i = 1; i < scenes.length; i++) {
     const last = merged[merged.length - 1];
-    if (last.duration < minDuration) {
-      // 合并到前一个场景
+    const current = scenes[i];
+    if (last.duration < minDuration || current.duration < minDuration) {
+      // Merge either side of a short boundary so a short final scene is not
+      // left behind as an exportable fragment.
       merged[merged.length - 1] = {
         ...last,
-        end: scenes[i].end,
-        duration: scenes[i].end - last.start,
-        frames: [...last.frames, ...scenes[i].frames],
+        end: current.end,
+        duration: current.end - last.start,
+        frames: [...(last.frames || []), ...(current.frames || [])],
       };
     } else {
-      merged.push(scenes[i]);
+      merged.push(current);
     }
   }
   // 重新编号
